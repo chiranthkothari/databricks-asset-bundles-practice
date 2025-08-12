@@ -6,7 +6,7 @@ on:
       - dev     # Deploy to dev when merging feature branch
   pull_request:
     branches:
-      - prod    # Deploy to prod when PR from dev → prod is approved
+      - main    # Deploy to prod when PR from dev → prod is approved
 
 jobs:
   deploy-dev:
