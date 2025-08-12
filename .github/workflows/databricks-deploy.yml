@@ -1,57 +1,56 @@
-name: Databricks Asset Bundles Deploy
+name: Databricks Bundle CI/CD
 
 on:
   push:
     branches:
-      - dev
-      - prod
+      - dev     # Deploy to dev when merging feature branch
+  pull_request:
+    branches:
+      - prod    # Deploy to prod when PR from dev → prod is approved
 
 jobs:
   deploy-dev:
     if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
+    environment: dev
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
       - name: Install Databricks CLI
-        run: pip install databricks
+        run: pip install databricks-cli databricks-sdk
 
-      - name: Authenticate to Databricks
-        run: databricks auth login --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
+      - name: Configure Databricks CLI
+        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
-      - name: Deploy to DEV
-        run: databricks bundles deploy --target dev
+      - name: Validate bundle
+        run: databricks bundle validate --target dev
+
+      - name: Deploy bundle to Dev
+        run: databricks bundle deploy --target dev
 
   deploy-prod:
-    if: github.ref == 'refs/heads/prod'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    environment: prod   # 👈 This triggers manual approval in GitHub
+    environment: prod
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
       - name: Install Databricks CLI
-        run: pip install databricks
+        run: pip install databricks-cli databricks-sdk
 
-      - name: Authenticate to Databricks
-        run: databricks auth login --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
+      - name: Configure Databricks CLI
+        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
-      - name: Deploy to PROD
-        run: databricks bundles deploy --target prod
+      - name: Validate bundle
+        run: databricks bundle validate --target prod
+
+      - name: Deploy bundle to Prod
+        run: databricks bundle deploy --target prod
