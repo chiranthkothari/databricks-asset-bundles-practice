@@ -1,0 +1,32 @@
+# resources/job/db_asset_bundle_test.job.yml
+resources:
+  jobs:
+    db_asset_bundle_test_job:
+      name: db_asset_bundle_test_job
+
+      tasks:
+        - task_key: ingest_data
+          notebook_task:
+            notebook_path: ../src/ingestion/ingest_posts.ipynb
+
+        - task_key: transform_data
+          depends_on:
+            - task_key: ingest_data
+          notebook_task:
+            notebook_path: ../src/transformation/transform_posts.ipynb
+
+        - task_key: load_data
+          depends_on:
+            - task_key: transform_data
+          notebook_task:
+            notebook_path: ../src/loading/load_posts.ipynb
+
+      # Optional: Add notifications and other settings
+      email_notifications:
+        on_failure:
+          - chiranthkothari96@gmail.com
+        on_success:
+          - chiranthkothari96@gmail.com
+      
+      timeout_seconds: 3600
+      max_concurrent_runs: 1

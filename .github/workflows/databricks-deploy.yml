@@ -1,0 +1,56 @@
+name: Databricks Bundle CI/CD
+
+on:
+  push:
+    branches:
+      - dev     # Deploy to dev when merging feature branch
+  pull_request:
+    branches:
+      - prod    # Deploy to prod when PR from dev → prod is approved
+
+jobs:
+  deploy-dev:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        run: pip install databricks-cli databricks-sdk
+
+      - name: Configure Databricks CLI
+        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN" --quiet
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+      - name: Validate bundle
+        run: databricks bundle validate --target dev
+
+      - name: Deploy bundle to Dev
+        run: databricks bundle deploy --target dev
+
+  deploy-prod:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        run: pip install databricks-cli databricks-sdk
+
+      - name: Configure Databricks CLI
+        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN" --quiet
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+      - name: Validate bundle
+        run: databricks bundle validate --target prod
+
+      - name: Deploy bundle to Prod
+        run: databricks bundle deploy --target prod
