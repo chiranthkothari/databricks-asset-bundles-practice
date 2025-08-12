@@ -3,7 +3,7 @@ name: Databricks Bundle CI/CD
 on:
   push:
     branches:
-      - dev     # Auto deploy to dev
+      - dev     # Deploy to dev when merging feature branch
   pull_request:
     branches:
       - prod    # Deploy to prod when PR from dev → prod is approved
@@ -13,20 +13,17 @@ jobs:
     if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     environment: dev
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Databricks CLI (new version)
+      - name: Install Databricks CLI
         run: |
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
           databricks version
-
-      - name: Authenticate with Databricks
-        run: databricks auth login --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
       - name: Validate bundle
         run: databricks bundle validate --target dev
@@ -37,23 +34,18 @@ jobs:
   deploy-prod:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    environment: 
-      name: prod
-      url: https://YOUR_DATABRICKS_WORKSPACE_URL
+    environment: prod
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Databricks CLI (new version)
+      - name: Install Databricks CLI
         run: |
-          curl -fsSL https://raw.githubusercontent.com/databricks/cli/main/install.sh | bash
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
           databricks version
-
-      - name: Authenticate with Databricks
-        run: databricks auth login --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
       - name: Validate bundle
         run: databricks bundle validate --target prod
