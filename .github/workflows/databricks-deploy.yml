@@ -13,18 +13,17 @@ jobs:
     if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     environment: dev
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Install Databricks CLI
-        run: pip install databricks-cli databricks-sdk
-
-      - name: Configure Databricks CLI
-        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+          databricks version
 
       - name: Validate bundle
         run: databricks bundle validate --target dev
@@ -36,18 +35,17 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     environment: prod
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Install Databricks CLI
-        run: pip install databricks-cli databricks-sdk
-
-      - name: Configure Databricks CLI
-        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+          databricks version
 
       - name: Validate bundle
         run: databricks bundle validate --target prod
