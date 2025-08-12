@@ -3,7 +3,7 @@ name: Databricks Bundle CI/CD
 on:
   push:
     branches:
-      - dev     # Deploy to dev when merging feature branch
+      - dev     # Auto deploy to dev
   pull_request:
     branches:
       - prod    # Deploy to prod when PR from dev → prod is approved
@@ -17,11 +17,13 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Databricks CLI
-        run: pip install databricks
+      - name: Install Databricks CLI (new version)
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/cli/main/install.sh | bash
+          databricks version
 
-      - name: Configure Databricks CLI
-        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
+      - name: Authenticate with Databricks
+        run: databricks auth login --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
@@ -35,16 +37,20 @@ jobs:
   deploy-prod:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    environment: prod
+    environment: 
+      name: prod
+      url: https://YOUR_DATABRICKS_WORKSPACE_URL
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Databricks CLI
-        run: pip install databricks
+      - name: Install Databricks CLI (new version)
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/cli/main/install.sh | bash
+          databricks version
 
-      - name: Configure Databricks CLI
-        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
+      - name: Authenticate with Databricks
+        run: databricks auth login --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
