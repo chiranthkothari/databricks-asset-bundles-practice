@@ -21,7 +21,7 @@ jobs:
         run: pip install databricks-cli databricks-sdk
 
       - name: Configure Databricks CLI
-        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN" --quiet
+        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
@@ -44,7 +44,7 @@ jobs:
         run: pip install databricks-cli databricks-sdk
 
       - name: Configure Databricks CLI
-        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN" --quiet
+        run: databricks configure --host "$DATABRICKS_HOST" --token "$DATABRICKS_TOKEN"
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
